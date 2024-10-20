@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('phone_number', 15);
             $table->string('password');
             $table->bigInteger('group_id')->unsigned()->nullable();
-            $table->enum('role', ['admin', 'staff', 'user'])->default('user');
+            $table->string('role')->default('user');
             $table->timestamps();
             $table->foreign('group_id')->references('id')->on('groups');
         });
