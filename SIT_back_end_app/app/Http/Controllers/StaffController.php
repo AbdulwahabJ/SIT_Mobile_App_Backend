@@ -3,7 +3,7 @@
 // في ملف app/Http/Controllers/StaffController.php
 namespace App\Http\Controllers;
 
-use App\Models\Staff;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -14,7 +14,7 @@ class StaffController extends Controller
     public function getStaff()
     {
         try {
-            $staffData = Staff::select('image', 'name', 'languages', 'phone_number')->get();
+            $staffData = User::select('image', 'name', 'languages', 'phone_number')->get();
 
             if ($staffData->isEmpty()) {
                 return response()->json(['message' => 'No Staff Found'],404);

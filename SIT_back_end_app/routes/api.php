@@ -4,6 +4,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\GroupController;
+use App\Http\Controllers\ProgramController;
+
 
 
 /*
@@ -17,23 +20,38 @@ use App\Http\Controllers\StaffController;
 |
 */
 
-// Route to get the authenticated user
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-
-// Test route
-Route::middleware('auth:api')->post('/logout', [AuthController::class, 'logout']);
-Route::middleware('auth:staff')->post('/staff_logout', [AuthController::class, 'logoutStaff']);
-
 // Authentication routes
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/verify_email', [AuthController::class, 'verifyEmail']);
 Route::post('/reset_password', [AuthController::class, 'resetPassword']);
-Route::post('/addgroup', [AuthController::class, 'addgroup']);
+
+// Group routes
+Route::post('/add_group', [GroupController::class, 'addGroup']);
+Route::get('/get_group', [GroupController::class, 'getGroup']);
+
+//Staff routes
 Route::get('/get_staff', [StaffController::class, 'getStaff']);
 
 
+// Routes protected by 'auth:api' middleware
+Route::middleware('auth:api')->group(function () {
+    // Group routes
+    Route::post('/update_user_group', [GroupController::class, 'updateUserGroup']);
+    Route::post('/update-group-name', [GroupController::class, 'updateGroupName']);
+    Route::delete('/delete-group-name', [GroupController::class, 'deleteGroupName']);
+    // End Group routes
+    //
+    //Program routse
+    Route::post('/add_program', [ProgramController::class, 'addProgram']);
+    Route::get('/get_program', [ProgramController::class, 'getProgram']);
+
+
+    //
+    // Authentication routes
+    Route::post('/logout', [AuthController::class, 'logout']);
+    // End Authentication routes
+});
+
+// Test route (not protected)
 Route::get('/test', [AuthController::class, 'test']);
-// Logout route

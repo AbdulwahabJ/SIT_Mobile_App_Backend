@@ -20,34 +20,7 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $staff = Staff::where('email', $request->email)->first();
         $user = User::where('email', $request->email)->first();
-
-        if ($staff) {
-            if (!Hash::check($request->password, $staff->password)) {
-                return response()->json(['message' => 'Invalid password'], 401);
-            }
-
-            $token = JWTAuth::fromUser($staff);
-            if (!$token) {
-                return response()->json(['message' => 'Could not create token'], 500);
-            }
-
-            return response()->json([
-                'message' => 'Staff logged successfully.',
-                'staff' => [
-                    'name' => $staff->name,
-                    'email' => $staff->email,
-                    'phone_number' => $staff->phone_number,
-                    'languages' => $staff->languages,
-                    'image' => $staff->image,
-                    'role' => $staff->role,
-                    'token' => $token,
-
-
-                ],
-            ], 200);
-        }
 
         if ($user) {
             if (!Hash::check($request->password, $user->password)) {
@@ -59,6 +32,10 @@ class AuthController extends Controller
                 return response()->json(['message' => 'Could not create token'], 500);
             }
 
+            if ($user->image) {
+                $user->image = asset('storage/' . $user->image);
+                //
+            }
             return response()->json([
                 'user' => [
                     'name' => $user->name,
@@ -66,6 +43,8 @@ class AuthController extends Controller
                     'phone_number' => $user->phone_number,
                     'group_id' => $user->group_id,
                     'role' => $user->role,
+                    'languages' => $user->languages,
+                    'image' => $user->image,
                     'token' => $token,
                 ],
                 'message' => 'User logged in successfully.'
@@ -73,71 +52,84 @@ class AuthController extends Controller
         }
 
         return response()->json(['message' => 'Invalid email'], 401);
+
+        // $staff = Staff::where('email', operator: $request->email)->first();
+
+        // if ($staff) {
+        //     if (!Hash::check($request->password, $staff->password)) {
+        //         return response()->json(['message' => 'Invalid password'], 401);
+        //     }
+
+        //     $token = JWTAuth::fromUser($staff);
+        //     if (!$token) {
+        //         return response()->json(['message' => 'Could not create token'], 500);
+        //     }
+
+        //     return response()->json([
+        //         'message' => 'Staff logged successfully.',
+        //         'staff' => [
+        //             'name' => $staff->name,
+        //             'email' => $staff->email,
+        //             'phone_number' => $staff->phone_number,
+        //             'languages' => $staff->languages,
+        //             'image' => $staff->image,
+        //             'role' => $staff->role,
+        //             'token' => $token,
+
+
+        //         ],
+        //     ], 200);
+        // }
+
     }
 
 
     public function register(Request $request)
     {
-        //staff
-        if ($request->has('role') && $request->role === 'staff') {
-
-            $existingStaff = Staff::where('email', $request->email)->first();
-            if ($existingStaff) {
-                return response()->json(['message' => 'Email is already in use'], 400);
-            }
-
-            $data = $request->all();
-            $data['password'] = Hash::make($data['password']);
-
-            if ($request->hasFile('image')) {
-                // $request->validate([
-                //     'image' => 'image|mimes:jpg,jpeg,png,gif|max:2048',
-                // ]);
-                $imagePath = $request->file('image')->store('staff_images', 'public');
-                $data['image'] = $imagePath;
-            }
-
-            $staff = Staff::create($data);
+        // dd(vars: $request->all());
+        $existingUser = User::where('email', $request->email)->first();
+        if ($existingUser) {
+            return response()->json(['message' => 'Email is already in use'], 400);
         }
 
-        //user
-        if ($request->has('role') && $request->role === 'user') {
-
-            $existingUser = User::where('email', $request->email)->first();
-            if ($existingUser) {
-                return response()->json(['message' => 'Email is already in use'], 400);
+        $group_id = null;
+        if ($request->has('group_id')) {
+            $group = Group::where('name', $request->group_id)->first();
+            if ($group) {
+                $group_id = $group->id;
             }
-
-            $group_id = null;
-            if ($request->has('group_id')) {
-                $group = Group::where('name', $request->group_id)->first();
-                if ($group) {
-                    $group_id = $group->id;
-                }
-            }
-
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'phone_number' => $request->phone_number,
-                'group_id' => $group_id,
-            ]);
-
-            $token = JWTAuth::fromUser($user);
-
-            return response()->json([
-                'message' => 'User registered successfully.',
-                'user' => [
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'token' => $token,
-                    'phone_number' => $user->phone_number,
-                    'group_id' => $group_id ? $group->name : null,
-                    'role' => 'user',
-                ],
-            ]);
         }
+
+        if ($request->hasFile('image')) {
+
+            $imagePath = $request->file('image')->store('staff_images', 'public');
+            $request->image = $imagePath;
+        }
+
+
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'phone_number' => $request->phone_number,
+            'group_id' => $group_id ?? null,
+            'role' => $request->role,
+            "image" => $request->image ?? null,
+            'languages' => $request->languages ?? null,
+        ]);
+
+        // $token = JWTAuth::fromUser($user);
+
+
+
+
+
+
+        return response()->json([
+            'message' => 'User registered successfully.',
+        ], 201);
+
     }
 
 
@@ -196,26 +188,26 @@ class AuthController extends Controller
         }
     }
 
-    public function logoutStaff(Request $request)
-    {
-        try {
-            if (!$token = JWTAuth::getToken()) {
-                return response()->json(['message' => 'Token not provided'], 400);
-            }
+    // public function logoutStaff(Request $request)
+    // {
+    //     try {
+    //         if (!$token = JWTAuth::getToken()) {
+    //             return response()->json(['message' => 'Token not provided'], 400);
+    //         }
 
-            JWTAuth::invalidate($token);
+    //         JWTAuth::invalidate($token);
 
-            return response()->json([
-                'message' => 'Successfully logged out'
-            ], 200);
-            //
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'An error occurred while logging out.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
+    //         return response()->json([
+    //             'message' => 'Successfully logged out'
+    //         ], 200);
+    //         //
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'message' => 'An error occurred while logging out.',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
 
     public function test()
@@ -225,6 +217,6 @@ class AuthController extends Controller
 
     public function addgroup()
     {
-        return  Group::create(['name' => "S300"]);
+        return Group::create(['name' => "S100"]);
     }
 }
