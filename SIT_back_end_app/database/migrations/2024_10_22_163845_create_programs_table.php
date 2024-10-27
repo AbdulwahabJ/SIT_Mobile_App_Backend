@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->bigInteger('group_id')->unsigned()->nullable();
             $table->timestamps();
             //
-            $table->foreign('group_id')->references('id')->on('groups');
+            $table->foreign('group_id')->references('id')->on('groups')->onDelete('cascade');
         });
     }
 

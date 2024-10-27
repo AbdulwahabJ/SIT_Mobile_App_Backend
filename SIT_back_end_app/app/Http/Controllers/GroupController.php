@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Group;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Exception;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -104,9 +105,9 @@ class GroupController extends Controller
     {
 
         // التحقق من صحة التوكن والحصول على المستخدم
-        if (!JWTAuth::parseToken()->authenticate()) {
-            return response()->json(['message' => 'User not found'], 404);
-        }
+        // if (!JWTAuth::parseToken()->authenticate()) {
+        //     return response()->json(['message' => 'User not found'], 404);
+        // }
         // 'old_group_name'
 // 'new_group_name'
 
@@ -137,17 +138,19 @@ class GroupController extends Controller
     public function deleteGroupName(Request $request)
     {
 
-        if (!JWTAuth::parseToken()->authenticate()) {
-            return response()->json(['message' => 'User not found'], 404);
-        }
+        // if (!JWTAuth::parseToken()->authenticate()) {
+        //     return response()->json(['message' => 'User not found'], 404);
+        // }
 
         try {
-            $isGroupExsit = Group::where('name', $request->name)->first();
+            $isGroupExist = Group::where('name', $request->name)->first();
             // dd($isGroupExsit);
 
-            if ($isGroupExsit) {
+            if ($isGroupExist) {
                 //
-                $isGroupExsit->delete();
+                User::where('group_id', $isGroupExist->id)->update(['group_id' => null]);
+
+                $isGroupExist->delete();
                 return response()->json([
                     'message' => 'Group deleted successfully'
                 ], 200);

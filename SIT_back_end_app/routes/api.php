@@ -32,20 +32,29 @@ Route::get('/get_group', [GroupController::class, 'getGroup']);
 
 //Staff routes
 Route::get('/get_staff', [StaffController::class, 'getStaff']);
+//
+Route::post('/add_program', [ProgramController::class, 'addProgram']);
+Route::get('/get_program', [ProgramController::class, 'getProgram']);
+Route::get('/get-all-programs', [ProgramController::class, 'getAllPrograms']);
+Route::post('/update-program', [ProgramController::class, 'updateProgram']);
+
+
+Route::post('/update_user_group', [GroupController::class, 'updateUserGroup']);
+Route::post('/update-group-name', [GroupController::class, 'updateGroupName']);
+Route::delete('/delete-group-name', [GroupController::class, 'deleteGroupName']);
 
 
 // Routes protected by 'auth:api' middleware
 Route::middleware('auth:api')->group(function () {
     // Group routes
-    Route::post('/update_user_group', [GroupController::class, 'updateUserGroup']);
-    Route::post('/update-group-name', [GroupController::class, 'updateGroupName']);
-    Route::delete('/delete-group-name', [GroupController::class, 'deleteGroupName']);
+    // Route::post('/update_user_group', [GroupController::class, 'updateUserGroup']);
+    // Route::post('/update-group-name', [GroupController::class, 'updateGroupName']);
+    // Route::delete('/delete-group-name', [GroupController::class, 'deleteGroupName']);
+
     // End Group routes
     //
     //Program routse
-    Route::post('/add_program', [ProgramController::class, 'addProgram']);
-    Route::get('/get_program', [ProgramController::class, 'getProgram']);
-
+//
 
     //
     // Authentication routes
