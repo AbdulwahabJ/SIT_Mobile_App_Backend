@@ -37,6 +37,7 @@ Route::post('/add_program', [ProgramController::class, 'addProgram']);
 Route::get('/get_program', [ProgramController::class, 'getProgram']);
 Route::get('/get-all-programs', [ProgramController::class, 'getAllPrograms']);
 Route::post('/update-program', [ProgramController::class, 'updateProgram']);
+Route::delete('/delete-program', [ProgramController::class, 'deleteProgram']);
 
 
 Route::post('/update_user_group', [GroupController::class, 'updateUserGroup']);

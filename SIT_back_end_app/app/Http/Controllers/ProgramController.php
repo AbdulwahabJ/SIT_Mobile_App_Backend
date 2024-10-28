@@ -159,6 +159,39 @@ class ProgramController extends Controller
             ], 500);
         }
     }
+
+    public function deleteProgram(Request $request)
+    {
+
+        // if (!JWTAuth::parseToken()->authenticate()) {
+        //     return response()->json(['message' => 'User not found'], 404);
+        // }
+
+        try {
+            $isProgramExist = Program::where('id', $request->id)->first();
+            // dd($isGroupExsit);
+
+            if ($isProgramExist) {
+                //
+
+                $isProgramExist->delete();
+                //
+                return response()->json([
+                    'message' => 'Program deleted successfully'
+                ], 200);
+            } else {
+                return response()->json([
+                    'message' => 'Program not found'
+                ], 404);
+            }
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred while deleting the Program.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
 
 
