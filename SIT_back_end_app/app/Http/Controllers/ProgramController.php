@@ -1,18 +1,19 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Exception;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\Group;
 use App\Models\Program;
+use Carbon\Carbon;
 
 
 class ProgramController extends Controller
 {
-    public function addProgram(Request $request)
+    public function addProgram(Request $request, NotificationService $notificationService)
     {
 
         // if (!$user = JWTAuth::parseToken()->authenticate()) {
@@ -31,8 +32,16 @@ class ProgramController extends Controller
                 'time' => $request->time,
             ]);
 
+            $title = "{$request->name} تم اضافة";
+            $body = " بتاريخ {$request->date} ";
+
+            $notificationSent = $notificationService->sendNotification($title, $body);
+
+
             return response()->json([
                 'message' => 'Program added successfully.',
+                'notification_sent' => $notificationSent ? 'success' : 'failed',
+
             ], 200);
 
 
@@ -192,6 +201,49 @@ class ProgramController extends Controller
             ], 500);
         }
     }
+
+    public function getProgramsForToday(Request $request)
+    {
+
+        // dd($request->all());
+
+        // if (!JWTAuth::parseToken()->authenticate()) {
+        //     return response()->json(['message' => 'User not found'], 404);
+        // }
+
+        try {
+            $group = Group::where('name', $request->group_name)->first();
+
+            $programs = Program::select('name', 'date', 'time')
+                ->where('group_id', $group->id)
+                ->get()
+                ->map(function ($program) {
+                    //
+                    $programDateTime = Carbon::parse($program->date . ' ' . $program->time)
+                        ->format('l dM g:ia'); // صيغة 'Monday 08Aug 3:45pm'
+                    //
+                    return [
+                        'program_name' => $program->name,
+                        'program_dateTime' => $programDateTime,
+                    ];
+                });
+
+            return response()->json(
+                [
+                    'data' => $programs,
+                ],
+                200
+            );
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to get Program.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+
+    }
+
 }
 
 

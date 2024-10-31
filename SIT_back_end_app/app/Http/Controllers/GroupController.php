@@ -8,6 +8,10 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Exception;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;  // Import TokenExpiredException
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;  // Import TokenInvalidException
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Support\Facades\Auth;
 
 class GroupController extends Controller
 {
@@ -70,17 +74,17 @@ class GroupController extends Controller
 
     public function updateUserGroup(Request $request)
     {
-        // التحقق من صحة التوكن والحصول على المستخدم
-        if (!$user = JWTAuth::parseToken()->authenticate()) {
+         if (!$user=JWTAuth::parseToken()->authenticate()) {
             return response()->json(['message' => 'User not found'], 404);
         }
 
-
         try {
-            // البحث عن القروب من خلال الاسم
             $group = Group::where('name', $request->group_name)->first();
 
-            // تحديث group_id للمستخدم
+            if (!$group) {
+                return response()->json(['message' => 'Group not found'], 404);
+            }
+
             $user->group_id = $group->id;
             $user->save();
 
@@ -89,10 +93,10 @@ class GroupController extends Controller
                 'user' => [
                     'name' => $user->name,
                     'email' => $user->email,
-                    'group_id' => $user->group_id,
+                    'group_id' => $group->name,  // استخدام اسم المجموعة الجديد
                 ],
             ], 200);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'message' => 'An error occurred while updating the group.',
                 'error' => $e->getMessage(),
@@ -101,13 +105,14 @@ class GroupController extends Controller
     }
 
 
+
     public function updateGroupName(Request $request)
     {
 
         // التحقق من صحة التوكن والحصول على المستخدم
-        // if (!JWTAuth::parseToken()->authenticate()) {
-        //     return response()->json(['message' => 'User not found'], 404);
-        // }
+        if (!JWTAuth::parseToken()->authenticate()) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
         // 'old_group_name'
 // 'new_group_name'
 

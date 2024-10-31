@@ -62,6 +62,6 @@ class User extends Authenticatable implements JWTSubject
     }
 
     public function group(){
-        return $this->belongsTo(Group::class,'id');
+        return $this->belongsTo(Group::class,'group_id');
     }
 }

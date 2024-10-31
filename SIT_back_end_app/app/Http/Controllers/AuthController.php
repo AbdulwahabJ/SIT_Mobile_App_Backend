@@ -41,7 +41,7 @@ class AuthController extends Controller
                     'name' => $user->name,
                     'email' => $user->email,
                     'phone_number' => $user->phone_number,
-                    'group_id' => $user->group_id,
+                    'group_id' => $user->group->name,
                     'role' => $user->role,
                     'languages' => $user->languages,
                     'image' => $user->image,
@@ -53,33 +53,7 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Invalid email'], 401);
 
-        // $staff = Staff::where('email', operator: $request->email)->first();
 
-        // if ($staff) {
-        //     if (!Hash::check($request->password, $staff->password)) {
-        //         return response()->json(['message' => 'Invalid password'], 401);
-        //     }
-
-        //     $token = JWTAuth::fromUser($staff);
-        //     if (!$token) {
-        //         return response()->json(['message' => 'Could not create token'], 500);
-        //     }
-
-        //     return response()->json([
-        //         'message' => 'Staff logged successfully.',
-        //         'staff' => [
-        //             'name' => $staff->name,
-        //             'email' => $staff->email,
-        //             'phone_number' => $staff->phone_number,
-        //             'languages' => $staff->languages,
-        //             'image' => $staff->image,
-        //             'role' => $staff->role,
-        //             'token' => $token,
-
-
-        //         ],
-        //     ], 200);
-        // }
 
     }
 
@@ -170,12 +144,17 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         try {
-            if (!$token = JWTAuth::getToken()) {
+            // if (!$token = JWTAuth::getToken()) {
+            //     return response()->json(['message' => 'Token not provided'], 400);
+            // }
+            $token = $request->bearerToken();
+
+            if (!$token) {
                 return response()->json(['message' => 'Token not provided'], 400);
             }
 
-
-            JWTAuth::invalidate($token);
+            // JWTAuth::invalidate($token);
+            JWTAuth::setToken($token)->invalidate();
 
             return response()->json([
                 'message' => 'Successfully logged out'
@@ -188,26 +167,6 @@ class AuthController extends Controller
         }
     }
 
-    // public function logoutStaff(Request $request)
-    // {
-    //     try {
-    //         if (!$token = JWTAuth::getToken()) {
-    //             return response()->json(['message' => 'Token not provided'], 400);
-    //         }
-
-    //         JWTAuth::invalidate($token);
-
-    //         return response()->json([
-    //             'message' => 'Successfully logged out'
-    //         ], 200);
-    //         //
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'message' => 'An error occurred while logging out.',
-    //             'error' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
 
 
     public function test()
