@@ -13,8 +13,7 @@ return new class extends Migration
     {
         Schema::create('moments', function (Blueprint $table) {
             $table->id();
-            $table->string('section');
-            $table->string('image_path');
+            $table->text('image_paths');
             $table->timestamps();
         });
     }

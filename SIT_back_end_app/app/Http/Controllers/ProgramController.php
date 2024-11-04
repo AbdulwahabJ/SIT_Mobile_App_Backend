@@ -32,8 +32,8 @@ class ProgramController extends Controller
                 'time' => $request->time,
             ]);
 
-            $title = "{$request->name} تم اضافة";
-            $body = " بتاريخ {$request->date} ";
+            $title = "check out! new {$request->name} ";
+            $body = " date {$request->date} ";
 
             $notificationSent = $notificationService->sendNotification($title, $body);
 
@@ -212,10 +212,24 @@ class ProgramController extends Controller
         // }
 
         try {
-            $group = Group::where('name', $request->group_name)->first();
+            if ($request->group_name != null) {
+                $group = Group::where('name', $request->group_name)->first();
 
+                $programs = Program::select('name', 'date', 'time')
+                    ->where('group_id', $group->id)
+                    ->get()
+                    ->map(function ($program) {
+                        //
+                        $programDateTime = Carbon::parse($program->date . ' ' . $program->time)
+                            ->format('l dM g:ia'); // صيغة 'Monday 08Aug 3:45pm'
+                        //
+                        return [
+                            'program_name' => $program->name,
+                            'program_dateTime' => $programDateTime,
+                        ];
+                    });
+            }
             $programs = Program::select('name', 'date', 'time')
-                ->where('group_id', $group->id)
                 ->get()
                 ->map(function ($program) {
                     //
@@ -237,7 +251,7 @@ class ProgramController extends Controller
 
         } catch (Exception $e) {
             return response()->json([
-                'message' => 'Failed to get Program.',
+                'message' => 'Failed to get Program',
                 'error' => $e->getMessage(),
             ], 500);
         }

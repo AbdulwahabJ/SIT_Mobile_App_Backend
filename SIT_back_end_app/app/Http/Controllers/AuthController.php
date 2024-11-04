@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\Staff;
-
 use App\Models\Group;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -22,6 +20,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
+        // dd($user->name);
         if ($user) {
             if (!Hash::check($request->password, $user->password)) {
                 return response()->json(['message' => 'Invalid password'], 401);
@@ -41,7 +40,7 @@ class AuthController extends Controller
                     'name' => $user->name,
                     'email' => $user->email,
                     'phone_number' => $user->phone_number,
-                    'group_id' => $user->group->name,
+                    'group_id' => $user->group->name ?? null,
                     'role' => $user->role,
                     'languages' => $user->languages,
                     'image' => $user->image,
@@ -94,9 +93,6 @@ class AuthController extends Controller
         ]);
 
         // $token = JWTAuth::fromUser($user);
-
-
-
 
 
 
