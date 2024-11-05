@@ -46,6 +46,7 @@ Route::middleware('auth:api')->group(function () {
 });
 Route::post('/upload-moment-images', [MomentsController::class, 'uploadeMomentImages']);
 Route::get('/get-all-moments', [MomentsController::class, 'getAllSectionImages']);
+Route::delete('/delete-moment-image', [MomentsController::class, 'deleteImage']);
 
 // Test route (not protected)
 Route::get('/test', [AuthController::class, 'test']);

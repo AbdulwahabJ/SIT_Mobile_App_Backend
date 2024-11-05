@@ -70,10 +70,44 @@ class MomentsController extends Controller
 
         foreach ($files as $file) {
             $images[] = url('storage/' . $file);
+            // $images[] = 'storage/' . $file;
+
         }
 
         return $images;
     }
+
+    public function deleteImage(Request $request)
+    {
+        try {
+            $imagePath = $request->input('image_path');
+
+            $parsedPath = parse_url($imagePath, PHP_URL_PATH);
+            $imagePath = str_replace('/storage/', '', $parsedPath);
+
+            $moment = Moment::whereRaw('JSON_CONTAINS(image_paths, ?)', ['"' . $imagePath . '"'])->first();
+            $imagePaths = json_decode($moment->image_paths, true);
+
+            $imagePaths = array_values(array_filter($imagePaths, fn($path) => $path !== $imagePath));
+
+            $moment->image_paths = json_encode($imagePaths);
+            $moment->save();
+
+            Storage::disk('public')->delete($imagePath);
+
+            return response()->json([
+                'message' => 'Images deleted successfully!',
+            ], 200);
+            //
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred while deleting the image.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
 }
 
 
